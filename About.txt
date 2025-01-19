@@ -1,0 +1,139 @@
+//SECTION - CodeSmith
+
+Setting up project
+
+npx create-next-app@15.0.3
+
+//IMP - CLERK SET UP AUTH
+1) npm install @clerk/nextjs@6.6.0
+2) Copy & Paste the .env.local file
+3) Copy & Paste the middleware.ts file under (src)
+4) Wrap the entire app with <ClerkProvider></ClerkProvider> in the layout.tsx
+
+//IMP - DB set up CONVEX.DEV
+  //LINK - /REALTIME UPDATES OUT OF THE BOX
+
+
+                   CONVEX DB
+                       |
+          _____________|_____________
+          |            |            | 
+          |            |            |  
+       Queries     Mutations     Actions    
+     Fetch data   Update,create Communicate with
+                   Delete data   3rd party services
+                                Ai, Payment gateway
+                                (stripe, LemonSquizzy)
+
+  1) npm i convex@1.17.3
+  2) npx convex dev and set up the DB                             
+
+  //IMP - connecting clerk with convex
+   
+    1) clerk => JWT templates => create texplate => Convex 
+    2) Copy the Issuer code & save the project
+    3) under the convex folder create a file "auth.config.ts"
+    4) Copy & Paste file convex/auth.config.ts from https://docs.convex.dev/auth/clerk in "auth.config.ts"
+    5) Replace the "domain" with the issuer "link"
+    6) Create a folder "components" in (src) in components create another folder as "providers"
+    7) Create a file "ConvexClientProvider.tsx" under providers
+       wrap the {children} with <ConvexProviderWithClerk/>
+    8) Wrap the {children} with <ConvexClientProvider/>
+       Now the convex and clerk is connected    
+
+  //IMP - Webhooks 
+   Webhooks are automated messages sent from apps when somthing happens
+
+    //LINK - Since  Clerk & Convex are 2 different services "webhooks are used to communicate"
+
+    1) In convex => HTTP Actions ("To listen webhooks")
+    2) In Clerk => webhooks => "Add Endpoint"
+       Inside env.local. copy the NEXT_PUBLIC_CONVEX_URL untill "convex."
+       paste inside the "Add Endpoint" URL keeping ".site" extension.
+    3) select "user.created" in Subscribe to events & create Endpoint 
+    4) Copy the "Signing Secret" and paste inside the convex=> settings=> Environment Variables=> paste => "CLERK_WEBHOOK_SECRET"
+    5) Create a file "http.ts" uder convex folder
+    6) npm i svix@1.42.0
+
+  //IMP - UI
+
+   1) npm i lucide-react@0.464.0  
+   2) For editor => npm i @monaco-editor/react@4.6.0
+
+  //IMP - Zustand (Global state management Library) zustand/jotai/redux
+   1)  npm i zustand@5.0.1
+
+  //IMP - Framer motion
+   1) npm i framer-motion@11.13.1
+
+  //IMP - PISTON API
+  //IMP - For the ("Run") functionality => API
+   // we can by-default run javascript in the browser, but for other language
+   // we are going to use PISTON API
+
+                                                PISTON API
+//LINK -User-1===>Code("ex:- C++")===> ______________________________
+                                      |                              | 
+                                      |  Docker - Container - 1      |
+                                      |  |                    |      |
+                                      |  |  Isolated env      |      |
+                                      |  |____________________|      |
+                                      |                              |       
+                                      |      Docker - Container - 2  |
+                                      |      |                    |  |
+                                      |      |    Isolated env    |  |
+                                      |      |____________________|  |   
+                                      |______________________________|<==//LINK -User 2<==("ex:- Python")
+
+
+
+You ----> PISTON API (your code runs in isolated docker container) ----> successfull ------> CONVEX DB
+                                                                   ----> Error       ------> CONVEX DB                       
+
+
+  //IMP - For Notification React-Hot-Toast
+    ==> npm i react-hot-toast@2.4.1 
+
+
+  //IMP - To Comment - ___Regex___
+   //LINK - const parts = content.split(/(```[\w-]*\n[\s\S]*?\n```)/g);
+   User can either write (normal text)
+   Or he can write the (code) ==> using  
+
+   ```javascript                                
+       const name = "John";               ===>  const name = "John"   
+       console.log("name:", name)               console.log("name:", name)
+      ```   
+
+   //IMP - Profile SECTION
+      npm i react-syntax-highlighter@15.6.1
+      npm i --save-dev @types/react-syntax-highlighter@15.5.13
+
+
+   //IMP - For Payment (LemonSquizzy)   
+    1) Signup on LemonSqeezy
+    2) Give a store name and link name
+    3) Create Product set up title, desc, pricing details, etc.
+    4) share => Copy the "code"
+    5) In the UpgradeButton.tsx => CHECKOUT_URL = "paste the lemonsqeezy url"
+
+   //IMP - If Someone makes payment, We should be able to Update the Convex DB
+    We are using  "Webhook"
+
+    Endpoint: 
+
+     _______________       /clerk-webhook           ________________
+    |               | ---------------------------->|                | 
+    |               |       user.created           |                |    
+    |     CLERK     |                              |    CONVEX      |  
+    |               |                              |                |  
+    |_______________| ---------------------------->|________________|   
+                         /lemon-squeezy-webhook            |
+                                                           |    
+                            order.created -----------------|
+                        ("payment successful")
+
+       1) Go the LemonSqueezy ---> Webhooks ---> + --> Copy & Paste the NEXT_PUBLIC_CONVEX_URL into the "Callback URL"
+           "befitting-antelope-677.convex.site/lemon-squeezy-webhook"
+       2) Create a Signning secret     
+       3) Go to convex ---> Environmental Vaiable ---> + new ---> LEMON_SQUEEZY_WEBHOOK_SECRET = Signning secret
